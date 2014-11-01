@@ -351,17 +351,23 @@
     mypkg.showImage = showImage;
     function showImage(fromTable, imgUrl, linkUrl)
     {
-        var tableWrapper = document.createElement("div");
-        tableWrapper.style.padding = "0";
-        tableWrapper.style.margin = "0";
-        tableWrapper.style.display = "inline-block";
-        tableWrapper.style.position = "relative";
-        fromTable.parentNode.insertBefore(tableWrapper, fromTable);
+        var tableWrapperOuter = document.createElement("div");
+        tableWrapperOuter.style.padding = "0";
+        tableWrapperOuter.style.margin = "0";
+        tableWrapperOuter.style.position = "relative";
+        fromTable.parentNode.insertBefore(tableWrapperOuter, fromTable);
         fromTable.parentNode.removeChild(fromTable);
-        tableWrapper.appendChild(fromTable);
+
+        var tableWrapperInner = document.createElement("div");
+        tableWrapperInner.style.padding = "0";
+        tableWrapperInner.style.margin = "0";
+        tableWrapperInner.style.display = "inline-block";
+        tableWrapperInner.style.position = "relative";
+        tableWrapperOuter.appendChild(tableWrapperInner);
+        tableWrapperInner.appendChild(fromTable);
 
         var loadingMark = createLoadingMark();
-        tableWrapper.appendChild(loadingMark);
+        tableWrapperInner.appendChild(loadingMark);
 
         var imgLoader = new Image();
         imgLoader.onload = onLoaded;
