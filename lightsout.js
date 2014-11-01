@@ -402,7 +402,7 @@
             function step(){
                 var alpha = Math.min((Date.now() - startTime) / 500, 1.0);
 
-                overlay.style.background = "rgba(0,0,0," + (alpha*0.5).toFixed(3) + ")";
+                overlay.style.background = "rgba(0,0,0," + (alpha*0.75).toFixed(3) + ")";
                 img.style.opacity = (Math.min(1.0, alpha*4)).toFixed(3);
 
                 function intpl(from, to){
