@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Puzzle Server Example</title>
+    <script src="../../lightsout.js"></script>
+  </head>
+  <body>
+    <h1>Puzzle Server Example</h1>
+
+    <div>
+      <script>
+        (function(){
+          var mjlo = misohena.js_lightsout;
+
+          var req = new XMLHttpRequest();
+          req.onload = start;
+          req.open("GET", "../../lightsout.rb", false);
+          req.send(null);
+
+          function start(){
+            if(typeof(req.responseText) != "string"){return;}
+            var problem = req.responseText.split("\n");
+            if(problem < 2){return;}
+            var pubtime = parseFloat(problem[0]);
+            var board = mjlo.parseBoard(problem[1]);
+            if(pubtime == 0 || !board){return;}
+
+            var table = mjlo.createTableView(board, "64px", "64px");
+            table.style.backgroundImage = "url('../common/bg5x5_64x64.jpg')";
+
+            mjlo.getLastScriptNode().parentNode.appendChild(table);
+
+            table.addEventListener("solved", onSolved, false);
+
+            function onSolved(e){
+              var imgUrl = "../../lightsout.rb?t=" + pubtime + "&a=" + table.getBoard().getMoveHistory().getAnswerText();
+console.log(imgUrl);
+              mjlo.showImage(table, imgUrl, imgUrl);
+            }
+          }
+        })();
+
+      </script>
+      Puzzle Game
+    </div>
+    <p>サーバによる出題と検証をする例。</p>
+    <table border="1">
+      <tr><td>サーバサイドプログラム</td><td>必要</td></tr>
+      <tr><td>出題のバリエーション</td><td>多様</td></tr>
+      <tr><td>解かずにファイルへアクセス</td><td>総当たりしない限り無理</td></tr>
+      <tr><td>画像URLの共有</td><td>IPアドレス、時間により限定</td></tr>
+    </table>
+
+  </body>
+</html>
