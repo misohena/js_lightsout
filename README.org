@@ -103,7 +103,7 @@ function onBoardMoved(e){
   if(table.getBoard().isSolved()){
     alert("Solved!");
   }
-  else if(table.getMoveHistory().getMoveCount() >= 1000){
+  else if(table.getBoard().getMoveHistory().getMoveCount() >= 1000){
     alert("1000手に達したのでゲームオーバーです。");
     table.setInputEnabled(false);
   }
@@ -112,13 +112,13 @@ function onBoardMoved(e){
 table.addEventListener("solved", onSolved, false); //解き終わるとsolvedイベントが発生します。その際、自動的にsetInputEnabled(false)になります。
 fuction onSolved(e){
   alert("Solved!"+
-    "\n moves=" + table.getMoveHistory().getMoveCount() +
-    "\n answer="+table.getMoveHistory().getAnswerText());
+    "\n moves=" + table.getBoard().getMoveHistory().getMoveCount() +
+    "\n answer="+table.getBoard().getMoveHistory().getAnswerText());
 }
 
 var board = table.getBoard(); //盤面を取得
 table.setInputEnabled(false); //入力受付を停止
-var history = table.getMoveHistory(); //MoveHistoryオブジェクトを取得
+var history = table.getBoard().getMoveHistory(); //MoveHistoryオブジェクトを取得
 #+END_SRC
 
 ** クライアントサイドオンリー使用例
