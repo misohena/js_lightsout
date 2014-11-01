@@ -1,3 +1,7 @@
+// lightsout.js
+// Copyright (c) 2014 AKIYAMA Kouhei
+// This software is released under the MIT License.
+
 (function(global){
     if(!global.misohena){ global.misohena = {}; }
     if(!global.misohena.js_lightsout){ global.misohena.js_lightsout = {}; }
