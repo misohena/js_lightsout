@@ -1,0 +1,123 @@
+* JavaScript Flip Puzzle Game
+
+反転パズルゲームです。パネルをクリックすると、そのパネルとその上下左右が反転します。邪魔なパネルを全て消して画像をゲットしましょう。
+
+** スクリプト概要
+
+lightsout.jsを読み込むと =misohena.js_lightsout= というオブジェクトが使えるようになります。このオブジェクトには本パズルゲームを実現するための様々な関数が入っています。
+
+長いので本ドキュメントでは =mjlo.= と略します。
+
+#+BEGIN_SRC js
+var mjlo = misohena.js_lightsout;
+#+END_SRC
+
+** 盤面モデル
+*** Board
+
+- 書式 :: Board(w, h, [cellsBooleanArrayWxH])
+
+Boardオブジェクトはパズル盤面の全状態を保持します。幅と高さ、セルのON/OFF状態を保持します。
+
+Boardオブジェクトは次の例で示すような方法で作成できます。
+
+#+BEGIN_SRC js
+var clearBoard = new mjlo.Board(5,5); //全てのセルがOFF状態の盤面
+var randomBoard = new mjlo.Board(5,5).randomize(); //ランダム状態(解あり)の盤面
+var initedBoard = new mjlo.Board(3,3,[
+  false,true,true,
+  true,false,true,
+  false,false,true]); //指定した初期状態の盤面
+var parsedBoard = mjlo.parseBoard(
+  ".##.#\n"+
+  ".#.##\n"+
+  "##.#.\n"+
+  "#.###\n"); //文字列で指定した初期状態の盤面
+#+END_SRC
+
+#+BEGIN_SRC js
+var board = new mjlo.Board(5,5).randomize();
+var w = board.getWidth(); //幅を返す。
+var h = board.getHeight(); //高さを返す。
+var currState = board.getCell(x, y); //(x,y)の状態をfalse/trueで返す。
+var newState = board.setCell(x, y, true); //(x,y)の状態をtrueに設定する。
+board.fill(false); //全てのセルをfalseに設定する。
+board.flipOn(x, y); //(x,y)のセルと、それに接するセルを反転する。
+var solved = board.isSolved(); //全てのセルがfalseならtrue、そうでなければfalseを返す。
+var sameBoardObject = board.randomize(); //いったん全てのセルをfalseにしてから、全各セルについて1/2の確率でflipOn操作を適用します。必ず解がある状態になります。偶然全てのセルがfalseになったときは自動的にやり直します。なので必ず!isSolved()になります。
+var sameHistoryObject = board.setMoveHistory(new mjlo.MoveHistory()); //flipOnで指定した座標を全て記録するためのオブジェクトを設定します。nullのとき記録しません。初期状態はnullです。
+#+END_SRC
+
+*** parseBoard
+
+- 書式 :: parseBoard(text)
+
+parseBoard関数はテキストを解析してBoardオブジェクトを作成します。次の処理を行います。
+
+1. textを空白文字(1つ以上の連続をひとまとまりの区切りとする)で切り分け、各文字列を行とします。
+2. 最初の行の文字数が盤面の幅になります。一つも行が無い場合や幅が0のとき、解析は失敗します。
+3. 最初の行から順に解析して盤面の幅に満たない行があった場合、その時点で解析を打ち切ります。
+4. 解析を打ち切った時点で、盤面の幅と一致した行の数が盤面の高さになります。高さが0のとき、解析は失敗します。
+5. 行内の各文字は各セルの状態を左から順に表します。文字が#のときはON、それ以外はOFFとして扱います。
+6. 解析結果のBoardオブジェクトを返します。解析が失敗したときはnullを返します。
+
+*** MoveHistory
+
+MoveHistoryオブジェクトは差し手の履歴を記録します。
+
+#+BEGIN_SRC js
+var board = new mjlo.Board(5,5).randomize();
+var history = new mjlo.MoveHistory(board.getWidth(), board.getHeight());
+board.setMoveHistory(history);
+
+board.flipOn(1, 2);
+board.flipOn(3, 4);
+
+history.getMoveCount(); //2 手数
+history.getMove(0); //{x:1,y:2} 第一手目
+history.getMove(1); //{x:3,y:4} 第二手目
+history.getAnswerText(); //"0000000000010000000000010" 奇数回flipOnした場所を示す
+#+END_SRC
+
+** HTMLテーブル要素ビュー
+*** createTableView
+createTableView関数は[[盤面モデル]]をHTMLのtable要素で盤面を表示・操作するHTMLTableElementを作成します。
+
+#+BEGIN_SRC js
+var table = mjlo.createTableView(new mjlo.Board(5,5).randomize(), "64px", "64px");
+document.body.appendChild(table);
+
+table.addEventListener("boardmoved", onBoardMoved, false); //手が進むとboardmovedイベントが発生します。solvedの前に発生します。
+function onBoardMoved(e){
+  if(table.getBoard().isSolved()){
+    alert("Solved!");
+  }
+  else if(table.getMoveHistory().getMoveCount() >= 1000){
+    alert("1000手に達したのでゲームオーバーです。");
+    table.setInputEnabled(false);
+  }
+}
+
+table.addEventListener("solved", onSolved, false); //解き終わるとsolvedイベントが発生します。その際、自動的にsetInputEnabled(false)になります。
+fuction onSolved(e){
+  alert("Solved!"+
+    "\n moves=" + table.getMoveHistory().getMoveCount() +
+    "\n answer="+table.getMoveHistory().getAnswerText());
+}
+
+var board = table.getBoard(); //盤面を取得
+table.setInputEnabled(false); //入力受付を停止
+var history = table.getMoveHistory(); //MoveHistoryオブジェクトを取得
+#+END_SRC
+
+** クライアントサイドオンリー使用例
+
+** 出題・解答判定サーバ使用例
+
+** 出題サーバ
+
+IPアドレスと現在の時刻(出題時刻)から問題を作成します。
+
+** 解答判定サーバ
+
+IPアドレスと出題時刻、そして解答(各パネルについて、奇数回クリックしたかどうかの情報)を元に正解しているかを判定します。正解していれば、任意のファイルの中身を返します。
