@@ -8,17 +8,19 @@
     //
 
     mypkg.Board = Board;
-    function Board(w, h, cells){
-        var history = null;
+    function Board(w, h, cells, hist){
+        var history = hist !== undefined ? hist : new MoveHistory(w, h);
 
         this.getWidth = function(){return w;};
         this.getHeight = function(){return h;};
         this.getCell = function(x, y){return cells[x+y*w];};
         this.setCell = function(x, y, state){ return cells[x+y*w] = state;};
+        this.getNCell = function(i){return cells[i];};
+        this.setNCell = function(i, state){ return cells[i] = state;};
         this.fill = function(state){
             for(var i = 0; i < cells.length; ++i){cells[i] = state;}
         };
-        this.flipOn = function(x, y){
+        this.flipOn = function(x, y, suppressRecordHistory){
             if(!(x >= 0 && y >= 0 && x < w && y < h)){
                 return;
             }
@@ -36,7 +38,7 @@
             if(y+1 < h) {
                 cells[index+w] = !cells[index+w];
             }
-            if(history){
+            if(history && !suppressRecordHistory){
                 history.addMove(x, y);
             }
         };
@@ -54,7 +56,7 @@
                 for(var y = 0; y < h; ++y){
                     for(var x = 0; x < w; ++x){
                         if(Math.random() < 0.5){
-                            this.flipOn(x, y);
+                            this.flipOn(x, y, true);
                         }
                     }
                 }
@@ -64,6 +66,28 @@
         };
         this.setMoveHistory = function(h){
             return history = h;
+        };
+        this.getMoveHistory = function(){
+            return history;
+        };
+        this.clone = function(){
+            return new Board(w, h, cells.slice(0), history ? history.clone() : null);
+        };
+        this.setBoard = function(b){
+            w = b.getWidth();
+            h = b.getHeight();
+            cells = new Array(w*h);
+            for(var i = 0; i < cells.length; ++i){
+                cells[i] = b.getNCell(i);
+            }
+            var bh = b.getMoveHistory();
+            if(bh){
+                history = bh.clone();
+            }
+            else{
+                history = null;
+            }
+            return this;
         };
         if(!cells){
             cells = new Array(w*h);
@@ -104,14 +128,17 @@
     //
     // Move History
     //
-    function MoveHistory(w, h)
+    function MoveHistory(w, h, movesArg)
     {
         var cells = new Array(w*h);
-        var moves = [];
-        this.addMove = function(x, y){
+        var moves = movesArg || [];
+        this.addMove = addMove;
+        function addMove(x, y){
             moves.push({x:x, y:y});
             flipCell(x, y);
         };
+        this.getWidth = function (){ return w;};
+        this.getHeight = function (){ return h;};
         this.getMove = function(i){ return moves[i];};
         this.getMoveCount = function(){ return moves.length;};
 
@@ -128,28 +155,91 @@
         }
         this.getAnswerText = getAnswerText;
         function getAnswerText(){
-            var TBL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-            var text = "";
-            var bits = 0;
-            function flush(){
-                text += TBL.charAt(bits);
-                bits = 0;
+            return convertBoolArrayToBase64(cells);
+        }
+        this.clone = clone;
+        function clone(){
+            return new MoveHistory(w, h, moves.slice(0));
+        }
+        this.setMoveHistory = setMoveHistory;
+        function setMoveHistory(hist){
+            w = hist.getWidth();
+            h = hist.getHeight();
+            cells = new Array(w*h);
+            moves = [];
+            for(var i = 0; i < hist.getMoveCount(); ++i){
+                var m = hist.getMove(i);
+                addMove(m.x, m.y);
             }
-            for(var i = 0, bi = 0; i < cells.length; ++i){
-                if(cells[i]){
-                    bits |= (1<<bi);
-                }
-                if(++bi >= 6){
-                    bi = 0;
-                    flush();
-                }
-            }
-            if(bi > 0){
-                flush();
-            }
-            return text;
         }
     }
+    var BASE64URL_TBL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    function toBase64Char(num)
+    {
+        return BASE64URL_TBL.charAt(num);
+    }
+    function convertBoolArrayToBase64(arr)
+    {
+        var text = "";
+        var bits = 0;
+        function flush(){
+            text += toBase64Char(bits);
+            bits = 0;
+        }
+        for(var i = 0, bi = 0; i < arr.length; ++i){
+            if(arr[i]){
+                bits |= (1<<bi);
+            }
+            if(++bi >= 6){
+                bi = 0;
+                flush();
+            }
+        }
+        if(bi > 0){
+            flush();
+        }
+        return text;
+    }
+    function convertIntToBase64(num, bits)
+    {
+        var arr = [];
+        for(var i = 0; i < bits; ++i){
+            arr.push( (num & 1) != 0 );
+            num >>= 1;
+        }
+        return convertBoolArrayToBase64(arr);
+    }
+
+    //
+    // Solver
+    //
+    mypkg.enumAllSolutionsText = enumAllSolutionsText;
+    function enumAllSolutionsText(board)
+    {
+        var w = board.getWidth();
+        var h = board.getHeight();
+        var cellCount = w * h;
+        if(cellCount > 28){
+            return null;
+        }
+        var solutions = [];
+        for(var s = 0; s < (1<<cellCount); ++s){
+            var b = board.clone();
+            var mask = 1;
+            for(var y = 0; y < h; ++y){
+                for(var x = 0; x < w; ++x, mask <<= 1){
+                    if(s & mask){
+                        b.flipOn(x, y, true);
+                    }
+                }
+            }
+            if(b.isSolved()){
+                solutions.push(convertIntToBase64(s, cellCount));
+            }
+        }
+        return solutions;
+    }
+
 
     //
     // HTMLTableElement View
@@ -235,14 +325,12 @@
         var table = this.table = createTable(board, cellW, cellH);
         var listeners = listenTableInput(table, board, onClickCell);
         var inputEnabled = true;
-        var history = new MoveHistory(board.getWidth(), board.getHeight());
 
         update();
 
         function onClickCell(x, y){
             if(inputEnabled){
                 board.flipOn(x, y);
-                history.addMove(x, y);
                 update();
 
                 fireBoardMovedEvent();
@@ -274,10 +362,6 @@
         table.setInputEnabled = setInputEnabled;
         function setInputEnabled(b){
             inputEnabled = b;
-        }
-        table.getMoveHistory = getMoveHistory;
-        function getMoveHistory(){
-            return history;
         }
 
         return table;
