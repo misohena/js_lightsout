@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Puzzle Fixed 5x5 Probrem Example</title>
+    <script src="../../lightsout.js"></script>
+  </head>
+  <body>
+    <h1>Puzzle Fixed 5x5 Probrem Example</h1>
+
+    <div>
+      <script>
+        (function(){
+          var mjlo = misohena.js_lightsout;
+          var table = mjlo.createTableView(
+            mjlo.parseBoard("...##\n#..#.\n..##.\n.##.#\n####."),
+            "64px", "64px");
+          table.style.backgroundImage = "url('../common/bg5x5_64x64.jpg')";
+
+          mjlo.getLastScriptNode().parentNode.appendChild(table);
+
+          table.addEventListener("solved", onSolved, false);
+
+          function onSolved(e){
+            var imgUrl = "bg_" + table.getBoard().getMoveHistory().getAnswerText() + ".jpg";
+            mjlo.showImage(table, imgUrl, imgUrl);
+          }
+        })();
+
+/*
+        (function(){
+          var mjlo = misohena.js_lightsout;
+          var solutions = mjlo.enumAllSolutionsText(mjlo.parseBoard("...##\n#..#.\n..##.\n.##.#\n####."));
+          for(var i = 0; i < solutions.length; ++i){
+            console.log(solutions[i]);
+          }
+        })();
+*/
+
+      </script>
+      Puzzle Game
+    </div>
+    <p>常に同じ問題を出題する例。</p>
+    <p>ご褒美画像のファイル名に答えをエンコードした文字列を加えることで、解かないと画像ファイルにアクセスできないようにする。
+    <p>答えは複数ありうるので、全ての答えをあらかじめ列挙して、それぞれに対応する画像ファイルを用意しておく必要がある。</p>
+    <table border="1">
+      <tr><td>サーバサイドプログラム</td><td>不要</td></tr>
+      <tr><td>出題のバリエーション</td><td>1つのみ</td></tr>
+      <tr><td>解かずにファイルへアクセス</td><td>総当たりしない限り無理</td></tr>
+      <tr><td>画像URLの共有</td><td>可能</td></tr>
+    </table>
+
+  </body>
+</html>

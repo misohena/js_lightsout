@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Puzzle Random 5x5 Problem Example</title>
+    <script src="../../lightsout.js"></script>
+  </head>
+  <body>
+    <h1>Puzzle Random 5x5 Problem Example</h1>
+
+    <div>
+      <script>
+        (function(){
+          var mjlo = misohena.js_lightsout;
+          var table = mjlo.createTableView(new mjlo.Board(5, 5).randomize(), "64px", "64px");
+          table.style.backgroundImage = "url('../common/bg5x5_64x64.jpg')";
+          //table.style.backgroundPosition = "-200px -50px";
+
+          mjlo.getLastScriptNode().parentNode.appendChild(table);
+
+          table.addEventListener("solved", onSolved, false);
+
+          function onSolved(e){
+            var imgUrl = "../common/bg.jpg";
+            mjlo.showImage(table, imgUrl, imgUrl);
+          }
+        })();
+      </script>
+      Puzzle Game
+    </div>
+    <p>クライアントサイドでランダム生成した問題を出題する例。</p>
+    <p>ご褒美画像のファイル名は常に一定なので、スクリプトを見れば解かずに画像ファイルにアクセスできてしまう。</p>
+    <table border="1">
+      <tr><td>サーバサイドプログラム</td><td>不要</td></tr>
+      <tr><td>出題のバリエーション</td><td>多様</td></tr>
+      <tr><td>解かずにファイルへアクセス</td><td>スクリプトを見れば可能</td></tr>
+      <tr><td>画像URLの共有</td><td>可能</td></tr>
+    </table>
+
+  </body>
+</html>

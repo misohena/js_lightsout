@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Puzzle Free Mode Example</title>
+    <script src="../../lightsout.js"></script>
+  </head>
+  <body>
+    <h1>Puzzle Free Mode Example</h1>
+
+    <div>
+      <div>
+        <input id="width" type="text" size="3" value="5"/>x<input id="height" type="text" size="3" value="5"/> <input id="newgame" type="button" value="New Game" />
+      </div>
+      <div id="status">
+      </div>
+      <script>
+        (function(){
+          var mjlo = misohena.js_lightsout;
+          var currentScript = mjlo.getLastScriptNode();
+          var currentTable = null;
+
+          function newGame(){
+            var inputWidth = document.getElementById("width");
+            var inputHeight = document.getElementById("height");
+            var w = parseInt(inputWidth.value, 10);
+            var h = parseInt(inputHeight.value, 10);
+            if(!w || !h){
+              return;
+            }
+
+            var table = mjlo.createTableView(new mjlo.Board(w,h).randomize(), "64px", "64px");
+            table.style.backgroundImage = "url('../common/bg.jpg')";
+            table.style.backgroundSize = "cover";
+            table.style.backgroundPosition = "center center";
+
+            if(currentTable){
+              currentTable.parentNode.removeChild(currentTable);
+            }
+            currentTable = currentScript.parentNode.insertBefore(table, currentScript);
+
+            table.addEventListener("boardmoved", onBoardMoved, false);
+            table.addEventListener("solved", onSolved, false);
+
+            function onBoardMoved(e){
+              updateStatus();
+            }
+            function onSolved(e){
+            }
+            function updateStatus(){
+              var status = document.getElementById("status");
+              while(status.firstChild){status.removeChild(status.firstChild);}
+              status.appendChild(document.createTextNode(
+                "Moves:" + table.getBoard().getMoveHistory().getMoveCount() +
+                " " + (table.getBoard().isSolved() ? "Solved!" : "")));
+            }
+            updateStatus();
+          }
+          newGame();
+
+          document.getElementById("newgame").addEventListener("click", newGame, false);
+        })();
+
+      </script>
+    </div>
+
+  </body>
+</html>
